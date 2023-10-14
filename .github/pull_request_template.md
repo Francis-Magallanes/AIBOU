@@ -1,5 +1,5 @@
 ## Instructions
-Fill up the following sections and remove the comments which are in bold italics.
+Fill up the following sections and remove the comments which are in bold italics (or text that are enclosed in "******").
 
 # Issue
 ***Copy and paste the issue keys here. You can also put additional info about the issu here***
