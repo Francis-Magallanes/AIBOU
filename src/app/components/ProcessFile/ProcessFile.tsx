@@ -1,21 +1,21 @@
 "use client";
 
 import {
-	Box,
-	Button,
-	Center,
-	HStack,
-	VStack,
-	Step,
-	StepDescription,
-	StepIcon,
-	StepIndicator,
-	StepNumber,
-	StepSeparator,
-	StepStatus,
-	StepTitle,
-	Stepper,
-	useSteps,
+  Box,
+  Button,
+  Center,
+  HStack,
+  VStack,
+  Step,
+  StepDescription,
+  StepIcon,
+  StepIndicator,
+  StepNumber,
+  StepSeparator,
+  StepStatus,
+  StepTitle,
+  Stepper,
+  useSteps,
 } from "@chakra-ui/react";
 import { DocumentUpload } from "./components/DocumentUpload";
 import { ChooseService, ServiceConfig } from "./components/ChooseService";
@@ -26,26 +26,27 @@ import { FC, useState, useReducer, useEffect } from "react";
 export { ProcessFile };
 
 const ProcessFileState = {
-	UPLOAD: 0,
-	CHOOSE_SERVICE: 1,
-	PROCESSING: 2,
-	PREVIEW_DOWNLOAD: 3,
+  UPLOAD: 0,
+  CHOOSE_SERVICE: 1,
+  PROCESSING: 2,
+  PREVIEW_DOWNLOAD: 3,
 } as const;
 
-type ProcessFileState = (typeof ProcessFileState)[keyof typeof ProcessFileState];
+type ProcessFileState =
+  (typeof ProcessFileState)[keyof typeof ProcessFileState];
 
 type ProcessFileActionTypes = "Next" | "Previous" | "GoToState";
 
 interface ProcessFileAction {
-	type: ProcessFileActionTypes;
-	payload?: ProcessFileState;
+  type: ProcessFileActionTypes;
+  payload?: ProcessFileState;
 }
 
 const steps: Array<{ title: string; description: string }> = [
-	{ title: "Step 1", description: "Upload File" },
-	{ title: "Step 2", description: "Choose Service" },
-	{ title: "Step 3", description: "Wait to Finish Processing" },
-	{ title: "Step 4", description: "Preview and Download Results" },
+  { title: "Step 1", description: "Upload File" },
+  { title: "Step 2", description: "Choose Service" },
+  { title: "Step 3", description: "Wait to Finish Processing" },
+  { title: "Step 4", description: "Preview and Download Results" },
 ];
 
 const availableFileTypes: Array<string> = [".pdf"];
@@ -105,172 +106,188 @@ const availableFileTypes: Array<string> = [".pdf"];
 // };
 
 const ProcessFile: FC = () => {
-	const [file, setFile] = useState<File>();
+  const [file, setFile] = useState<File>();
 
-	const {
-		activeStep: currentStepIndex,
-		setActiveStep: setCurrentStepIndex,
-		goToNext,
-		goToPrevious,
-	} = useSteps({
-		index: 0,
-		count: steps.length,
-	});
+  const {
+    activeStep: currentStepIndex,
+    setActiveStep: setCurrentStepIndex,
+    goToNext,
+    goToPrevious,
+  } = useSteps({
+    index: 0,
+    count: steps.length,
+  });
 
-	const processFileReducer = (
-		state: ProcessFileState,
-		action: ProcessFileAction
-	): ProcessFileState => {
-		let newState: ProcessFileState = ProcessFileState.UPLOAD;
-		switch (action.type) {
-			case "Next":
-				if (state === ProcessFileState.UPLOAD && file != undefined) {
-					newState = ProcessFileState.CHOOSE_SERVICE;
-				} else if (state === ProcessFileState.CHOOSE_SERVICE) {
-					newState = ProcessFileState.PROCESSING;
-				} else if (state === ProcessFileState.PROCESSING) {
-					newState = ProcessFileState.PREVIEW_DOWNLOAD;
-				} else if (state === ProcessFileState.PREVIEW_DOWNLOAD) {
-					newState = ProcessFileState.UPLOAD;
-				}
-				break;
+  const processFileReducer = (
+    state: ProcessFileState,
+    action: ProcessFileAction,
+  ): ProcessFileState => {
+    let newState: ProcessFileState = ProcessFileState.UPLOAD;
+    switch (action.type) {
+      case "Next":
+        if (state === ProcessFileState.UPLOAD && file != undefined) {
+          newState = ProcessFileState.CHOOSE_SERVICE;
+        } else if (state === ProcessFileState.CHOOSE_SERVICE) {
+          newState = ProcessFileState.PROCESSING;
+        } else if (state === ProcessFileState.PROCESSING) {
+          newState = ProcessFileState.PREVIEW_DOWNLOAD;
+        } else if (state === ProcessFileState.PREVIEW_DOWNLOAD) {
+          newState = ProcessFileState.UPLOAD;
+        }
+        break;
 
-			case "Previous":
-				if (state === ProcessFileState.CHOOSE_SERVICE) {
-					newState = ProcessFileState.UPLOAD;
-				}
-				// You can't go back once the state is PROCESSING and PREVIEW_DOWNLOAD
-				break;
+      case "Previous":
+        if (state === ProcessFileState.CHOOSE_SERVICE) {
+          newState = ProcessFileState.UPLOAD;
+        }
+        // You can't go back once the state is PROCESSING and PREVIEW_DOWNLOAD
+        break;
 
-			case "GoToState":
-				newState = action.payload ?? ProcessFileState.UPLOAD;
-				break;
+      case "GoToState":
+        newState = action.payload ?? ProcessFileState.UPLOAD;
+        break;
 
-			default:
-				newState = state;
-		}
+      default:
+        newState = state;
+    }
 
-		return newState ?? state;
-	};
+    return newState ?? state;
+  };
 
-	const [currentProcessFileState, dispatchProcessFileState] = useReducer(
-		processFileReducer,
-		ProcessFileState.UPLOAD
-	);
+  const [currentProcessFileState, dispatchProcessFileState] = useReducer(
+    processFileReducer,
+    ProcessFileState.UPLOAD,
+  );
 
-	const [serviceConfig, setServiceConfig] = useState<ServiceConfig>({
-		typeOfService: "CREATEQUESTIONAIRE",
-		config: undefined,
-	});
+  const [serviceConfig, setServiceConfig] = useState<ServiceConfig>({
+    typeOfService: "CREATEQUESTIONAIRE",
+    config: undefined,
+  });
 
-	const [processOutput, setProcessOutput] = useState<ProcessingOutput>();
+  const [processOutput, setProcessOutput] = useState<ProcessingOutput>();
 
-	const previousButtonClick = () => {
-		if (currentProcessFileState === ProcessFileState.CHOOSE_SERVICE) {
-			setFile(undefined);
-		}
+  const previousButtonClick = () => {
+    if (currentProcessFileState === ProcessFileState.CHOOSE_SERVICE) {
+      setFile(undefined);
+    }
 
-		dispatchProcessFileState({ type: "Previous" });
-		goToPrevious();
-	};
+    dispatchProcessFileState({ type: "Previous" });
+    goToPrevious();
+  };
 
-	const nextButtonClick = () => {
-		if (currentProcessFileState === ProcessFileState.PREVIEW_DOWNLOAD) {
-			setCurrentStepIndex(0);
-			setFile(undefined);
-		} else {
-			goToNext();
-		}
-		dispatchProcessFileState({ type: "Next" });
-	};
+  const nextButtonClick = () => {
+    if (currentProcessFileState === ProcessFileState.PREVIEW_DOWNLOAD) {
+      setCurrentStepIndex(0);
+      setFile(undefined);
+    } else {
+      goToNext();
+    }
+    dispatchProcessFileState({ type: "Next" });
+  };
 
-	useEffect(() => {
-		if (currentProcessFileState === ProcessFileState.PROCESSING && processOutput) {
-			dispatchProcessFileState({ type: "Next" });
-			goToNext();
-		}
-	}, [processOutput]);
+  useEffect(() => {
+    if (
+      currentProcessFileState === ProcessFileState.PROCESSING &&
+      processOutput
+    ) {
+      dispatchProcessFileState({ type: "Next" });
+      goToNext();
+    }
+  }, [processOutput]);
 
-	return (
-		<>
-			<VStack gap="0">
-				<HStack padding="3rem" justify="center" gap="5rem">
-					<Stepper index={currentStepIndex} orientation="vertical" height="400px" gap="0">
-						{steps.map((step, index) => (
-							<Step key={index}>
-								<StepIndicator>
-									<StepStatus
-										complete={<StepIcon />}
-										incomplete={<StepNumber />}
-										active={<StepNumber />}
-									/>
-								</StepIndicator>
+  return (
+    <>
+      <VStack gap="0">
+        <HStack
+          padding="3rem"
+          justify="center"
+          gap="5rem"
+        >
+          <Stepper
+            index={currentStepIndex}
+            orientation="vertical"
+            height="400px"
+            gap="0"
+          >
+            {steps.map((step, index) => (
+              <Step key={index}>
+                <StepIndicator>
+                  <StepStatus
+                    complete={<StepIcon />}
+                    incomplete={<StepNumber />}
+                    active={<StepNumber />}
+                  />
+                </StepIndicator>
 
-								<Box flexShrink="0">
-									<StepTitle>{step.title}</StepTitle>
-									<StepDescription>{step.description}</StepDescription>
-								</Box>
+                <Box flexShrink="0">
+                  <StepTitle>{step.title}</StepTitle>
+                  <StepDescription>{step.description}</StepDescription>
+                </Box>
 
-								<StepSeparator />
-							</Step>
-						))}
-					</Stepper>
+                <StepSeparator />
+              </Step>
+            ))}
+          </Stepper>
 
-					<Center>
-						{currentProcessFileState === ProcessFileState.UPLOAD && (
-							<DocumentUpload validFileTypes={availableFileTypes} setFile={setFile} />
-						)}
+          <Center>
+            {currentProcessFileState === ProcessFileState.UPLOAD && (
+              <DocumentUpload
+                validFileTypes={availableFileTypes}
+                setFile={setFile}
+              />
+            )}
 
-						{currentProcessFileState === ProcessFileState.CHOOSE_SERVICE && (
-							<ChooseService
-								fileName={file?.name ?? "File Not Found"}
-								setOutputServiceConfig={setServiceConfig}
-							/>
-						)}
+            {currentProcessFileState === ProcessFileState.CHOOSE_SERVICE && (
+              <ChooseService
+                fileName={file?.name ?? "File Not Found"}
+                setOutputServiceConfig={setServiceConfig}
+              />
+            )}
 
-						{currentProcessFileState === ProcessFileState.PROCESSING && (
-							<Processing
-								file={file}
-								serviceConfig={serviceConfig}
-								setProcessingOutput={setProcessOutput}
-							/>
-						)}
+            {currentProcessFileState === ProcessFileState.PROCESSING && (
+              <Processing
+                file={file}
+                serviceConfig={serviceConfig}
+                setProcessingOutput={setProcessOutput}
+              />
+            )}
 
-						{currentProcessFileState === ProcessFileState.PREVIEW_DOWNLOAD && (
-							<PreviewDownload processingOutput={processOutput} />
-						)}
-					</Center>
-				</HStack>
+            {currentProcessFileState === ProcessFileState.PREVIEW_DOWNLOAD && (
+              <PreviewDownload processingOutput={processOutput} />
+            )}
+          </Center>
+        </HStack>
 
-				<HStack gap="1rem">
-					<Button
-						colorScheme="blue"
-						size="md"
-						onClick={previousButtonClick}
-						hidden={
-							currentProcessFileState === ProcessFileState.UPLOAD ||
-							currentProcessFileState === ProcessFileState.PROCESSING ||
-							currentProcessFileState === ProcessFileState.PREVIEW_DOWNLOAD
-						}
-					>
-						Previous
-					</Button>
-					<Button
-						colorScheme="blue"
-						size="md"
-						onClick={nextButtonClick}
-						hidden={
-							(currentProcessFileState === ProcessFileState.UPLOAD && file == undefined) ||
-							currentProcessFileState === ProcessFileState.PROCESSING
-						}
-					>
-						{currentProcessFileState === ProcessFileState.UPLOAD ||
-						currentProcessFileState === ProcessFileState.CHOOSE_SERVICE
-							? "Next"
-							: "Process Another File"}
-					</Button>
-				</HStack>
-			</VStack>
-		</>
-	);
+        <HStack gap="1rem">
+          <Button
+            colorScheme="blue"
+            size="md"
+            onClick={previousButtonClick}
+            hidden={
+              currentProcessFileState === ProcessFileState.UPLOAD ||
+              currentProcessFileState === ProcessFileState.PROCESSING ||
+              currentProcessFileState === ProcessFileState.PREVIEW_DOWNLOAD
+            }
+          >
+            Previous
+          </Button>
+          <Button
+            colorScheme="blue"
+            size="md"
+            onClick={nextButtonClick}
+            hidden={
+              (currentProcessFileState === ProcessFileState.UPLOAD &&
+                file == undefined) ||
+              currentProcessFileState === ProcessFileState.PROCESSING
+            }
+          >
+            {currentProcessFileState === ProcessFileState.UPLOAD ||
+            currentProcessFileState === ProcessFileState.CHOOSE_SERVICE
+              ? "Next"
+              : "Process Another File"}
+          </Button>
+        </HStack>
+      </VStack>
+    </>
+  );
 };
