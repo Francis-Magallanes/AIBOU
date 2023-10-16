@@ -4,7 +4,7 @@ Fill up the following sections and remove the comments which are in bold italics
 
 # Issue
 
-**_Copy and paste the issue keys here. You can also put additional info about the issu here_**
+**_Copy and paste the issue link here. You can also put additional info about the issue here_**
 **_Also, don't forget to put the issue keys in the title of the PR_**
 
 # Summary of Changes
