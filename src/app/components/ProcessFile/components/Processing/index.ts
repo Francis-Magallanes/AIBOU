@@ -158,7 +158,7 @@ async function processContentForCreateQuestionaire(
 
   for (let i = 0; i < payloads.length - 1; i++) {
     // setting a max token to limit the gpt output for acknowledgement
-    await gptAPIPostRequestHandler(payloads[i], abortSignal, 5);
+    await gptAPIPostRequestHandler(payloads[i], abortSignal, 3);
   }
   const responseGPT = await gptAPIPostRequestHandler(
     payloads[payloads.length - 1],
@@ -280,7 +280,7 @@ async function processContentForSummary(
 
   for (let i = 0; i < payloads.length; i++) {
     // setting a max token to limit the gpt output for acknowledgement
-    await gptAPIPostRequestHandler(payloads[i], abortSignal, 5);
+    await gptAPIPostRequestHandler(payloads[i], abortSignal, 3);
   }
   return await gptAPIPostRequestHandler(
     payloads[payloads.length - 1],
@@ -295,25 +295,35 @@ async function gptAPIPostRequestHandler(
 ): Promise<string> {
   //* Note: The Promise is immediatey executed at the instance of creation.
 
-  const openaiAPIKey = process.env.NEXT_PUBLIC_OPENAI_API_KEY_DEV;
-  const apiEndpoint = "https://api.openai.com/v1/chat/completions";
-  const gpt_model = "gpt-3.5-turbo-0613";
+  let baseURL;
+  switch (process.env.NODE_ENV) {
+    case "development":
+      baseURL = "http://localhost:3000";
+      break;
+
+    case "production":
+      // TODO: Update the URL for the production environment
+      baseURL = "http://localhost:3000";
+      break;
+
+    default:
+      baseURL = "http://localhost:3000";
+  }
+  const apiEndpoint = baseURL + "/api/redirect";
 
   const response = await fetch(apiEndpoint, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${openaiAPIKey}`,
     },
     body: JSON.stringify({
-      model: gpt_model,
+      model: "gpt-3.5-turbo-0613",
       messages: [{ role: "user", content: prompt }],
       max_tokens: maxTokens,
     }),
     signal: abortSignal,
   });
   const responseJSON = await response.json();
-  // console.log(responseJSON);
 
-  return responseJSON.choices[0].message.content as string;
+  return responseJSON.results as string;
 }
